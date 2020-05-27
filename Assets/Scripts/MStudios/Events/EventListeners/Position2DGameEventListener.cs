@@ -1,7 +1,7 @@
 ﻿using MStudios.Events.GameEvents;
-using Vector3 = UnityEngine.Vector3;
+using UnityEngine;
 
 namespace MStudios.Events.EventListeners
 {
-    public class Position3DGameEventListener : GameEventListener<Position3DGameEvent, Vector3> { }
+    public class Position2DGameEventListener : GameEventListener<Position2DGameEvent, Vector2> { }
 }

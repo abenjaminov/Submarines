@@ -1,4 +1,7 @@
-﻿$HEADER$namespace $NAMESPACE$
+﻿namespace Submarines
 {
-  public class $CLASS$ {$END$}
+    public class GameState
+    {
+        
+    }
 }

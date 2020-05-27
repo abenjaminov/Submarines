@@ -1,63 +1,41 @@
 ﻿using System.Collections.Generic;
-using DefaultNamespace;
-using UnityEditor;
+using MStudios.Events.GameEvents;
 using UnityEngine;
 
-namespace GridUtils
+namespace MStudios.Grid
 {
-    public class GridVisual : MonoBehaviour
+    public class GridVisual<T> : MonoBehaviour, IGridVisual<T>
     {
+        [Header("Debug")]
         [SerializeField] private bool drawDebugGrid;
-        [SerializeField] private List<GridObject2DData> gridObjectsData;
-        [SerializeField] private int rows;
-        [SerializeField] private int columns;
         
-        private Grid2D<int> _grid;
-        private Vector2 gridPosition;
-        private Sprite selectionBoxSprite;
-        private SpriteRenderer mouseFollowRenderer;
-        private BoxCollider2D boxCollider2D;
-        private GridObject2DData selectedGridObject;
-
-        private void Awake()
-        {
-            gridPosition = transform.position - new Vector3(columns / 2, (rows / 2),0);
-            _grid = new Grid2D<int>(transform.position,rows, columns);
-            boxCollider2D = GetComponent<BoxCollider2D>();
-            boxCollider2D.size = new Vector2(columns, rows);
-            selectedGridObject = gridObjectsData[0];
-        }
-
-        public void StartFollowMouse()
-        {
-            if (mouseFollowRenderer == null)
-            {
-                mouseFollowRenderer =
-                    ABenjUtils.CreateSpriteObject2D(transform, Input.mousePosition, selectedGridObject.visual, Color.white);
-            }
-            
-            mouseFollowRenderer.gameObject.SetActive(true);
-        }
+        [Header("Grid Data")]
+        [SerializeField] protected int rows;
+        [SerializeField] protected int columns;
+        [Space]
+        [SerializeField] protected List<GridObject2DData> gridObjectsData;
         
-        private void Start()
+
+        [SerializeField]
+        private Position2DGameEvent gridLocationSelectedEvent;
+        
+        protected Grid2D<T> grid;
+        private Vector2 _debugGridPosition;
+
+        protected void Awake()
         {
-            StartFollowMouse();
+            _debugGridPosition = transform.position;
         }
 
         private void Update()
         {
             if(drawDebugGrid)
-                ABenjUtils.DrawDebugGrid(gridPosition,1,rows,columns,Color.white);
-            
-            var mouseInWorld = ABenjUtils.Mouse.GetWorldPosition(Camera.main);
-            var positionOnGrid = _grid.SnapToGridInWorld(mouseInWorld,selectedGridObject);
-            mouseFollowRenderer.transform.position = positionOnGrid;
+                MUtils.DrawDebugGrid(_debugGridPosition,1,rows,columns,Color.white);
         }
 
-        private void OnMouseDown()
+        public virtual void Refresh(Grid2D<T> grid)
         {
-            var mouseInWorld = ABenjUtils.Mouse.GetWorldPosition(Camera.main);
-            var positionOnGrid = _grid.SnapToGridInWorld(mouseInWorld, 1, 1);
+            
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Submarines
 {
-    public interface IBattleManager
+    public interface ISubSide
     {
         
     }

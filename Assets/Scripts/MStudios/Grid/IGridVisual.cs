@@ -1,7 +1,9 @@
-﻿namespace MStudios.Grid
+﻿using UnityEngine;
+
+namespace MStudios.Grid
 {
-    public class IGridVisual
+    public interface IGridVisual<T>
     {
-        
+        void Refresh(Grid2D<T> grid);
     }
 }

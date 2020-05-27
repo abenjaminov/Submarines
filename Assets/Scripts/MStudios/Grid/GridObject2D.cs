@@ -1,24 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using DefaultNamespace;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
-using Vector3 = UnityEngine.Vector3;
 
-namespace GridUtils
+namespace MStudios.Grid
 {
     public class GridObject2D<T>
     {
         private string _name;
-        private Vector2 _position;
-        public readonly List<Vector2> localCellpositions = new List<Vector2>();
-        public readonly List<Vector2> gridSpaceCellPositions = new List<Vector2>();
-        private GridObject2DData _data;
-        private Vector2 cellDrawOffset;
+        public Vector2Int gridReferenceFramePosition;
+        private readonly List<Vector2Int> _objectReferenceFrameCellPositions = new List<Vector2Int>();
+        public readonly List<Vector2Int> gridReferenceFrameCellPositions = new List<Vector2Int>();
+        private readonly GridObject2DData _data;
+        public Sprite visual => _data.visual;
         public T value;
 
-        public GridObject2D(string name, GridObject2DData data) : this(name, data.occupiedOffsets, data.pivot)
+        public GridObject2D(string name, GridObject2DData data) : this(name, data.occupiedOffsets, data.centerOffset)
         {
             this._data = data;
         }
@@ -26,42 +23,35 @@ namespace GridUtils
         public GridObject2D(string name, List<Vector2Int> occupiedOffsets, Vector2 cellDrawOffset)
         {
             this._data = null;
-            this.cellDrawOffset = cellDrawOffset;
 
             foreach (var offset in occupiedOffsets)
             {
-                var newCell = new Vector2(_position.x + offset.x, _position.y + offset.y);
-                localCellpositions.Add(newCell);
+                var newCell = new Vector2Int(gridReferenceFramePosition.x + offset.x, gridReferenceFramePosition.y + offset.y);
+                _objectReferenceFrameCellPositions.Add(newCell);
             }
         }
 
-        public void SetLocalPosition(Vector2 gridSpacePosition)
+        public void SetLocalPosition(Vector2Int gridSpacePosition)
         {
-            _position = gridSpacePosition + this.cellDrawOffset;
-
-            var offset = _position - gridSpacePosition;
-            UpdateCellsOffset(offset);
-        }
-
-        private void UpdateCellsOffset(Vector2 offset)
-        {
-            foreach (var cell in localCellpositions)
-            {
-                cell.Set(cell.x + offset.x, cell.y + offset.y);
-            }
-
+            gridReferenceFramePosition = gridSpacePosition;
+            
             CacheGridSpaceCellPositions();
         }
 
         private void CacheGridSpaceCellPositions()
         {
-            gridSpaceCellPositions.Clear();
-            gridSpaceCellPositions.AddRange(localCellpositions.Select(cell => new Vector2(_position.x + cell.x, _position.y + cell.y)));
+            gridReferenceFrameCellPositions.Clear();
+            gridReferenceFrameCellPositions.AddRange(_objectReferenceFrameCellPositions.Select(cell => new Vector2Int(gridReferenceFramePosition.x + cell.x, gridReferenceFramePosition.y + cell.y)));
         }
 
-        public bool HasLocalPosition(Vector2 localPosition)
+        public bool HasLocalPosition(Vector2Int localPosition)
         {
-            return localCellpositions.Contains(localPosition);
+            return _objectReferenceFrameCellPositions.Contains(localPosition);
+        }
+
+        public bool IsPositionOnObject(Vector2Int positionInGridReferenceFrame)
+        {
+            return this.gridReferenceFrameCellPositions.Contains(positionInGridReferenceFrame);
         }
     }
 }

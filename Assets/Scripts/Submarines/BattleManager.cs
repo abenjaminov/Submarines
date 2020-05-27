@@ -1,12 +1,28 @@
-﻿namespace Submarines
+﻿using System.Collections.Generic;
+using MStudios.Events.GameEvents;
+using MStudios.Grid;
+using UnityEngine;
+
+namespace Submarines
 {
-    public class GameManager
+    public class BattleManager : MonoBehaviour
     {
-        private GameState currentState;
+        public List<GridObject2DData> submarines;
+        private GameState _currentState;
+
+        [Space]
+        [Header("State Events")]
+        public EmptyGameEvent prepareForBattleStateStarted;
         
         private void Awake()
         {
-            currentState = new PrepareForBattleState();    
+              StartPrepareForBattle();
+        }
+
+        private void StartPrepareForBattle()
+        {
+            _currentState = new PrepareForBattleState(submarines);
+            prepareForBattleStateStarted.Raise();
         }
     }
 }
