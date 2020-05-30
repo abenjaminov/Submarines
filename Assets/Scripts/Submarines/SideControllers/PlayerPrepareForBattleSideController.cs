@@ -68,7 +68,7 @@ namespace Submarines
         {
             var mouseWorldPosition = MUtils.Mouse.GetWorldPosition(Camera.main);
             var positionOnGrid =
-                _grid.SnapToGridInWorld(mouseWorldPosition, gridObjectData);
+                _grid.SnapToWorldGridPosition(mouseWorldPosition, gridObjectData);
             _selectedObjectRenderer.gameObject.transform.position = positionOnGrid;
             _selectedObjectRenderer.color = Color.white;
             

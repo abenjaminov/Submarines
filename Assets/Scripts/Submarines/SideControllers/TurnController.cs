@@ -53,7 +53,7 @@ namespace Submarines.SideControllers
         private Vector2 GetMouseLocalGridPosition()
         {
             var mouseWorldPosition = MUtils.Mouse.GetWorldPosition(_mainCamera);
-            var localPosition = _grid.SnapToGridInWorld(mouseWorldPosition, cellSelectorObject);
+            var localPosition = _grid.SnapToWorldGridPosition(mouseWorldPosition, cellSelectorObject);
             return localPosition;
         }
 
