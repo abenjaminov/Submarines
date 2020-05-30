@@ -14,15 +14,11 @@ namespace MStudios.Grid
         [SerializeField] protected int columns;
         [Space]
         [SerializeField] protected List<GridObject2DData> gridObjectsData;
-        
 
-        [SerializeField]
-        private Position2DGameEvent gridLocationSelectedEvent;
-        
         protected Grid2D<T> grid;
         private Vector2 _debugGridPosition;
 
-        protected void Awake()
+        protected virtual void Awake()
         {
             _debugGridPosition = transform.position;
         }

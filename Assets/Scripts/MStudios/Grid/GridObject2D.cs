@@ -9,25 +9,30 @@ namespace MStudios.Grid
     {
         private string _name;
         public Vector2Int gridReferenceFramePosition;
-        private readonly List<Vector2Int> _objectReferenceFrameCellPositions = new List<Vector2Int>();
+        private readonly List<GridObjectCell<T>> _gridObjectCells = new List<GridObjectCell<T>>();
         public readonly List<Vector2Int> gridReferenceFrameCellPositions = new List<Vector2Int>();
         private readonly GridObject2DData _data;
         public Sprite visual => _data.visual;
-        public T value;
+        private readonly T _initialValue;
 
-        public GridObject2D(string name, GridObject2DData data) : this(name, data.occupiedOffsets, data.centerOffset)
+        public GridObject2D(string name, GridObject2DData data, T initialValue = default(T)) : this(name, data.occupiedOffsets, data.centerOffset, initialValue)
         {
             this._data = data;
         }
-        
-        public GridObject2D(string name, List<Vector2Int> occupiedOffsets, Vector2 cellDrawOffset)
+
+        private GridObject2D(string name, List<Vector2Int> occupiedOffsets, Vector2 cellDrawOffset, T initialValue = default(T))
         {
             this._data = null;
+            _initialValue = initialValue;
 
             foreach (var offset in occupiedOffsets)
             {
-                var newCell = new Vector2Int(gridReferenceFramePosition.x + offset.x, gridReferenceFramePosition.y + offset.y);
-                _objectReferenceFrameCellPositions.Add(newCell);
+                var newCellLocalPosition = new Vector2Int(gridReferenceFramePosition.x + offset.x, gridReferenceFramePosition.y + offset.y);
+                _gridObjectCells.Add(new GridObjectCell<T>()
+                {
+                    value = _initialValue,
+                    localPosition = newCellLocalPosition
+                });
             }
         }
 
@@ -41,17 +46,46 @@ namespace MStudios.Grid
         private void CacheGridSpaceCellPositions()
         {
             gridReferenceFrameCellPositions.Clear();
-            gridReferenceFrameCellPositions.AddRange(_objectReferenceFrameCellPositions.Select(cell => new Vector2Int(gridReferenceFramePosition.x + cell.x, gridReferenceFramePosition.y + cell.y)));
+            gridReferenceFrameCellPositions.AddRange(_gridObjectCells.Select(cell => 
+                new Vector2Int(gridReferenceFramePosition.x + cell.localPosition.x, 
+                    gridReferenceFramePosition.y + cell.localPosition.y)));
         }
 
         public bool HasLocalPosition(Vector2Int localPosition)
         {
-            return _objectReferenceFrameCellPositions.Contains(localPosition);
+            return _gridObjectCells.Any(x => x.localPosition == localPosition);
         }
 
         public bool IsPositionOnObject(Vector2Int positionInGridReferenceFrame)
         {
             return this.gridReferenceFrameCellPositions.Contains(positionInGridReferenceFrame);
+        }
+
+        public T GetValueAt(Vector2Int positionInGridReferenceFrame)
+        {
+            if (IsPositionOnObject(positionInGridReferenceFrame))
+            {
+                var localPosition = positionInGridReferenceFrame - gridReferenceFramePosition;
+                var cell = _gridObjectCells.FirstOrDefault(x => x.localPosition == localPosition);
+
+                if (cell != null)
+                {
+                    return cell.value;
+                }
+            }
+
+            return default(T);
+        }
+
+        public void SetValueAt(Vector2Int positionInGridReferenceFrame, T value)
+        {
+            var localPosition = positionInGridReferenceFrame - gridReferenceFramePosition;
+            var cell = _gridObjectCells.FirstOrDefault(x => x.localPosition == localPosition);
+            
+            if (cell != null)
+            {
+                cell.value = value;
+            }
         }
     }
 }

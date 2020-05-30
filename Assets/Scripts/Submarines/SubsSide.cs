@@ -2,53 +2,57 @@
 using System.Collections.Generic;
 using MStudios;
 using MStudios.Grid;
+using Submarines.SideControllers;
 using UnityEngine;
 
 namespace Submarines
 {
-    [RequireComponent(typeof(ISubSideController))]
     public class SubsSide : GridVisual<SubmarineCellState>
     {
-        
-        private readonly List<SpriteRenderer> _objectsDrawnOnGrid = new List<SpriteRenderer>();
+        public Submarine submarinePrefab;
+        private readonly List<Submarine> _submarines = new List<Submarine>();
         private int _squaresAlive;
 
         private ISubSideController _sideController;
 
-        private void Awake()
+        protected override void Awake()
         {
             base.Awake();
-            
-            _sideController = GetComponent<ISubSideController>();
             grid = new Grid2D<SubmarineCellState>(transform.position,rows, columns, this);
         }
 
-        public void PrepareForBattle()
+        public void SetSideControllerAndActivate(ISubSideController sideController)
         {
-            _sideController.OnReadyForBattle += SideControllerOnOnReadyForBattle;
-            _sideController.PrepareForBattle(grid, gridObjectsData);
+            _sideController = sideController;
+            _sideController.SetGrid(grid);
+            _sideController.Activate();
         }
-
-        private void SideControllerOnOnReadyForBattle()
+        
+        public void DeactivateController()
         {
-            Debug.Log("Side ready for battle");
+            _sideController?.Deactivate();
+            _sideController = null;
         }
 
         public override void Refresh(Grid2D<SubmarineCellState> grid)
         {
-            foreach (var drawnObject in _objectsDrawnOnGrid)
+            foreach (var drawnObject in _submarines)
             {
                 Destroy(drawnObject.gameObject);
             }
-            _objectsDrawnOnGrid.Clear();
+            _submarines.Clear();
             
             var objectsOnGrid = grid.GetObjectsOnGrid();
 
             foreach (var objectOnGrid in objectsOnGrid)
             {
-                var newRenderer =
-                    MUtils.CreateSpriteObject2D(transform, objectOnGrid.gridReferenceFramePosition, objectOnGrid.visual, Color.white);
-                _objectsDrawnOnGrid.Add(newRenderer);
+                var newSubObject = Instantiate(submarinePrefab,transform);
+                newSubObject.transform.localPosition = objectOnGrid.gridReferenceFramePosition.AsVector3();
+                
+                var newSub = newSubObject.GetComponent<Submarine>();
+                newSub.SetSprite(objectOnGrid.visual);
+                
+                _submarines.Add(newSub);
             }
         }
     }

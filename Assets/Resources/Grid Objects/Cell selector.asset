@@ -10,17 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3940ef7de2843faaf59442e04e7d416, type: 3}
-  m_Name: 1x3
+  m_Name: Cell selector
   m_EditorClassIdentifier: 
-  height: 1
-  width: 3
-  centerOffset: {x: -0.33333334, y: 0}
-  leftPartWidth: 0.5
-  rightPartWidth: 2.5
-  bottomPartHeight: 0.5
-  topPartHeight: 0.5
-  visual: {fileID: 21300000, guid: 78e51b76c29799540b4a6462cc39f7d8, type: 3}
+  height: 0
+  width: 0
+  centerOffset: {x: 0, y: 0}
+  leftPartWidth: 0
+  rightPartWidth: 0
+  bottomPartHeight: 0
+  topPartHeight: 0
+  visual: {fileID: 21300000, guid: 8d3c3e42aff0bec4ebead71894e8f686, type: 3}
   occupiedOffsets:
   - {x: 0, y: 0}
-  - {x: 1, y: 0}
-  - {x: 2, y: 0}

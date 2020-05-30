@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -12,13 +13,13 @@ namespace MStudios.Grid
         public readonly int rows;
         public readonly int columns;
 
-        private readonly Vector2 _gridPosition;
+        public readonly Vector2 gridPosition;
         private IGridVisual<T> _visualization;
         
         public Grid2D(Vector2 position, int rows, int columns, IGridVisual<T> visualization)
         {
             _visualization = visualization;
-            _gridPosition = position;
+            gridPosition = position;
             this.rows = rows;
             this.columns = columns;
         }
@@ -28,19 +29,46 @@ namespace MStudios.Grid
             return !_occupiedCells.Contains(ClampToGridInLocalPositions(worldPosition));
         }
 
+        public T GetValueAt(Vector2 worldPosition)
+        {
+            var gridObject = GetObjectAt(worldPosition);
+
+            if (gridObject == null)
+            {
+                return default(T);
+            }
+            else
+            {
+                return gridObject.GetValueAt(ClampToGridInLocalPositions(worldPosition));
+            }
+        }
+
+        private GridObject2D<T> GetObjectAt(Vector2 worldPosition)
+        {
+            var positionInGridReferenceFrame = ClampToGridInLocalPositions(worldPosition);
+
+            var gridObject = _gridObjectInstances.FirstOrDefault(o => o.IsPositionOnObject(positionInGridReferenceFrame));
+            return gridObject;
+        }
+
         public bool CanPutDownObject(GridObject2DData objectData, Vector2 worldPosition)
         {
             var positionInGridReferenceFrame = ClampToGridInLocalPositions(worldPosition);
-            return _gridObjectInstances.All(o => !o.IsPositionOnObject(positionInGridReferenceFrame));
+            foreach (var occupiedOffsetOnObject in objectData.occupiedOffsets)
+            {
+                var point = positionInGridReferenceFrame + occupiedOffsetOnObject;
+                if (_gridObjectInstances.Any(o => o.IsPositionOnObject(point))) return false;
+            }
+
+            return true;
         }
         
         public void PutDownObject(GridObject2DData objectData, Vector2 worldPosition, T value = default(T))
         {
             var positionOnGrid = SnapToGridInLocal(worldPosition, objectData);
-            var newGridObject = new GridObject2D<T>("Grid Object", objectData);
+            var newGridObject = new GridObject2D<T>("Grid Object", objectData,value);
             newGridObject.SetLocalPosition(new Vector2Int(positionOnGrid.x, positionOnGrid.y));
-            newGridObject.value = value;
-            
+
             _occupiedCells.AddRange(newGridObject.gridReferenceFrameCellPositions);
             
             _gridObjectInstances.Add(newGridObject);
@@ -87,11 +115,11 @@ namespace MStudios.Grid
         
         private Vector2 ClampToGridInWorldPositions(Vector2 centerWorldPosition, int leftOffset, int rightOffset, int bottomOffset, int topOffset)
         {
-            var centerLocalPosition = centerWorldPosition - _gridPosition;
+            var centerLocalPosition = centerWorldPosition - gridPosition;
 
             Vector2 localGridPosition = ClampToGridInLocalPositions(centerWorldPosition, leftOffset, rightOffset, bottomOffset, topOffset);
 
-            return localGridPosition + _gridPosition;
+            return localGridPosition + gridPosition;
         }
 
         private Vector2Int ClampToGridInLocalPositions(Vector2 centerWorldPosition)
@@ -101,7 +129,7 @@ namespace MStudios.Grid
         
         private Vector2Int ClampToGridInLocalPositions(Vector2 centerWorldPosition, int leftOffset, int rightOffset, int bottomOffset, int topOffset)
         {
-            var centerLocalPosition = centerWorldPosition - _gridPosition;
+            var centerLocalPosition = centerWorldPosition - gridPosition;
 
             Vector2Int localGridPosition = new Vector2Int
             {
@@ -115,22 +143,9 @@ namespace MStudios.Grid
 
         public void SetValue(T value, Vector2 worldPosition)
         {
-            var positionOnGrid = ClampToGridInLocalPositions(worldPosition);
-            GridObject2D<T> objectToSetValue;
-            
-            if (!_occupiedCells.Contains(positionOnGrid))
-            {
-                objectToSetValue = new GridObject2D<T>("New Object",new List<Vector2Int>() {new Vector2Int(0, 0)}, Vector2.zero);
-                objectToSetValue.SetLocalPosition(positionOnGrid);
-                _gridObjectInstances.Add(objectToSetValue);
-                _occupiedCells.AddRange(objectToSetValue.gridReferenceFrameCellPositions);
-            }
-            else
-            {
-                objectToSetValue = _gridObjectInstances.First(x => x.HasLocalPosition(positionOnGrid));
-            }
+            GridObject2D<T> objectToSetValue = GetObjectAt(worldPosition);
 
-            objectToSetValue.value = value;
+            objectToSetValue?.SetValueAt(ClampToGridInLocalPositions(worldPosition), value);
         }
 
         public List<GridObject2D<T>> GetObjectsOnGrid()
@@ -164,7 +179,7 @@ namespace MStudios.Grid
                 foreach (var gridReferenceFrameCellPosition in objectInstance.gridReferenceFrameCellPositions)
                 {
                     gridValues[gridReferenceFrameCellPosition.y, gridReferenceFrameCellPosition.x].value =
-                        objectInstance.value;
+                        objectInstance.GetValueAt(gridReferenceFrameCellPosition);
                     gridValues[gridReferenceFrameCellPosition.y, gridReferenceFrameCellPosition.x].visual =
                         objectInstance.visual;
                 }
