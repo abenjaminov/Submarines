@@ -9,9 +9,8 @@ namespace Submarines
 {
     public class SubsSide : GridVisual<SubmarineCellState>
     {
-        public Submarine submarinePrefab;
+        [SerializeField] private Submarine submarinePrefab;
         private readonly List<Submarine> _submarines = new List<Submarine>();
-        private int _squaresAlive;
 
         private ISubSideController _sideController;
 
@@ -34,7 +33,7 @@ namespace Submarines
             _sideController = null;
         }
 
-        public override void Refresh(Grid2D<SubmarineCellState> grid)
+        public override void Refresh()
         {
             foreach (var drawnObject in _submarines)
             {
@@ -51,9 +50,25 @@ namespace Submarines
                 
                 var newSub = newSubObject.GetComponent<Submarine>();
                 newSub.SetSprite(objectOnGrid.visual);
-                
+
+                var deadPositions = objectOnGrid.GetAllLocalPositionsWithValue(SubmarineCellState.Dead);
+                foreach (var deadPosition in deadPositions)
+                {
+                    newSub.SetDeadCell(deadPosition);
+                }
+
                 _submarines.Add(newSub);
             }
         }
+
+        public Vector3 GetRandomCellWorldPositionByState(SubmarineCellState state)
+        {
+            return grid.GetRandomCellByValue(state).AsVector3() + transform.position;
+        }
+
+        public void DamageCell(Vector3 cellWorldPosition)
+        {
+            grid.SetValue(SubmarineCellState.Dead, cellWorldPosition);
+        }        
     }
 }

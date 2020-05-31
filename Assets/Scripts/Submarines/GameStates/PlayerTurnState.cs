@@ -5,8 +5,8 @@ namespace Submarines.GameStates
 {
     public class PlayerTurnState : GameState
     {
-        private readonly TurnController _controller;
-        public PlayerTurnState(BattleManager battleManager, TurnController turnController) : base(battleManager)
+        private readonly PlayerTurnController _controller;
+        public PlayerTurnState(BattleManager battleManager, PlayerTurnController turnController) : base(battleManager)
         {
             _controller = turnController;
         }

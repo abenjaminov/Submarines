@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace MStudios.Grid
 {
@@ -24,6 +25,24 @@ namespace MStudios.Grid
             this.columns = columns;
         }
 
+        public Vector2Int GetRandomCellByValue(T value)
+        {
+            if (value.Equals(default(T)))
+            {
+                // TODO : default value selector
+                return Vector2Int.zero;
+            }
+            else
+            {
+                var availableObjects = _gridObjectInstances.Where(x => x.HasCellWithValue(value)).ToList();
+                var randomIndex = Random.Range(0, availableObjects.Count);
+                var selectedObject = availableObjects[randomIndex];
+                var cellPosition = selectedObject.GetRandomLocalCellPositionWithValue(value);
+
+                return cellPosition + selectedObject.gridReferenceFramePosition;
+            }
+        }
+        
         public bool IsCellEmpty(Vector2 worldPosition)
         {
             return !_occupiedCells.Contains(ClampToLocalGridPosition(worldPosition));
@@ -73,7 +92,7 @@ namespace MStudios.Grid
             
             _gridObjectInstances.Add(newGridObject);
             
-            _visualization.Refresh(this);
+            _visualization.Refresh();
         }
 
         public void ClearGridObjectAt(Vector2Int worldPosition)
@@ -85,7 +104,7 @@ namespace MStudios.Grid
 
             _occupiedCells.RemoveAll(x => gridObject.gridReferenceFrameCellPositions.Contains(x));
             _gridObjectInstances.Remove(gridObject);
-            _visualization.Refresh(this);
+            _visualization.Refresh();
         }
 
         private Vector2Int SnapToLocalGridPosition(Vector2 centerWorldPosition, GridObject2DData objectData)
@@ -133,7 +152,10 @@ namespace MStudios.Grid
         {
             GridObject2D<T> objectToSetValue = GetObjectAt(worldPosition);
 
-            objectToSetValue?.SetValueAt(ClampToLocalGridPosition(worldPosition), value);
+            if (objectToSetValue == null) return;
+            
+            objectToSetValue.SetValueAt(ClampToLocalGridPosition(worldPosition), value);
+            _visualization.Refresh();
         }
 
         public List<GridObject2D<T>> GetObjectsOnGrid()

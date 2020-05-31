@@ -15,7 +15,7 @@ namespace Submarines
         [Space] [Header("Side Controllers")]
         [SerializeField] private PlayerPrepareForBattleSideController playerPrepareForBattleSideController;
         [SerializeField] private AIPrepareForBattleSideController aiPrepareForBattleSideController;
-        [SerializeField] private TurnController playerTurnController;
+        [SerializeField] private PlayerTurnController playerTurnController;
 
         [Space] [Header("Sides (Grids)")]
         public SubsSide Player;
@@ -36,14 +36,7 @@ namespace Submarines
 
         private void PrepareForBattleStateOver()
         {
-            _currentState = new StartGameState(this, 5);
-            _currentState.OnStateOver += StartGameStateOver;
-            StartCoroutine(_currentState.Start());
-        }
-
-        private void StartGameStateOver()
-        {
-            _currentState = new PlayerTurnState(this, playerTurnController);
+            _currentState = new EnemyTurnState(this);
             StartCoroutine(_currentState.Start());
         }
     }

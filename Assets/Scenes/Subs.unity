@@ -457,12 +457,6 @@ MonoBehaviour:
   prepareForBattleObjects:
   - objectData: {fileID: 11400000, guid: b297bd18c154fa44199509c866f9ce5a, type: 2}
     amount: 2
-  - objectData: {fileID: 11400000, guid: bc47b4145e06a124fbd925d188dbb6d0, type: 2}
-    amount: 2
-  - objectData: {fileID: 11400000, guid: ab362f4bd253ebb4aa3f707b3bea9d77, type: 2}
-    amount: 1
-  - objectData: {fileID: 11400000, guid: e0b7f30900a5fa248bfebd476548fb42, type: 2}
-    amount: 2
 --- !u!61 &923096790
 BoxCollider2D:
   m_ObjectHideFlags: 0

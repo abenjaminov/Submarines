@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Submarines.SideControllers
 {
     [RequireComponent(typeof(BoxCollider2D))]
-    public class TurnController : MonoBehaviour, ISubSideController
+    public class PlayerTurnController : MonoBehaviour, ISubSideController
     {
         public event Action OnTurnEnd;
         public event Action OnGridLocationClicked;

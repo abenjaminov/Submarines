@@ -87,5 +87,21 @@ namespace MStudios.Grid
                 cell.value = value;
             }
         }
+
+        public bool HasCellWithValue(T value)
+        {
+            return _gridObjectCells.Any(x => x.value.Equals(value));
+        }
+
+        public Vector2Int GetRandomLocalCellPositionWithValue(T value)
+        {
+            var relevantCellPositions = GetAllLocalPositionsWithValue(value);
+            return relevantCellPositions[Random.Range(0, relevantCellPositions.Count)];
+        }
+
+        public List<Vector2Int> GetAllLocalPositionsWithValue(T value)
+        {
+            return _gridObjectCells.Where(x => x.value.Equals(value)).Select(x => x.localPosition).ToList();
+        }
     }
 }

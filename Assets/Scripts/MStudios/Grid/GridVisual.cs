@@ -29,7 +29,7 @@ namespace MStudios.Grid
                 MUtils.DrawDebugGrid(_debugGridPosition,1,rows,columns,Color.white);
         }
 
-        public virtual void Refresh(Grid2D<T> grid)
+        public virtual void Refresh()
         {
             
         }

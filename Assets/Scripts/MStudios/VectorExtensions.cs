@@ -4,6 +4,10 @@ namespace MStudios
 {
     public static class VectorExtensions
     {
+        public static Vector2 AsFloatVector2(this Vector2Int self)
+        {
+            return new Vector2(self.x,self.y);
+        }
         public static Vector3 AsVector3(this Vector2 self)
         {
             return new Vector3(self.x, self.y, 0);

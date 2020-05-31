@@ -63,7 +63,7 @@ namespace MStudios
 
         }
         
-        public static SpriteRenderer CreateSpriteObject2D(Transform parent, Vector2 localPosition, Sprite sprite, Color color)
+        public static SpriteRenderer CreateSpriteObject2D(Transform parent, Vector2 localPosition, Sprite sprite, Color color,int layerSortingOrder = 0)
         {
             GameObject gameObject = new GameObject("Sprite2D", typeof(SpriteRenderer));
             Transform transform = gameObject.transform;
@@ -72,6 +72,7 @@ namespace MStudios
 
             SpriteRenderer renderer = gameObject.GetComponent<SpriteRenderer>();
             renderer.sprite = sprite;
+            renderer.sortingOrder = layerSortingOrder;
             renderer.color = color;
 
             return renderer;

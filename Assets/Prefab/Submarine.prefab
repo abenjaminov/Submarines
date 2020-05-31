@@ -95,6 +95,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dd8503680a32cd4fa2594e577cdbbca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  deadCellSprite: {fileID: 21300000, guid: 212a3bb961317ba4ba315d1456ad3f31, type: 3}
 --- !u!61 &6531894960625970705
 BoxCollider2D:
   m_ObjectHideFlags: 0
