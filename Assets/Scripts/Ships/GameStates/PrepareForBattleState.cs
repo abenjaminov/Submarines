@@ -16,8 +16,7 @@ namespace Submarines.GameStates
         
         public PrepareForBattleState(BattleManager battleManager,
             PlayerPrepareForBattleSideController playerController,
-            AIPrepareForBattleSideController enemyController,  
-            List<GridObject2DData> battleObjects) : base(battleManager)
+            AIPrepareForBattleSideController enemyController) : base(battleManager)
         {
             this._playerController = playerController;
             this._enemyController = enemyController;

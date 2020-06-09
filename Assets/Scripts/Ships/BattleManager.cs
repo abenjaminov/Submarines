@@ -9,7 +9,6 @@ namespace Submarines
 {
     public class BattleManager : MonoBehaviour
     {
-        public List<GridObject2DData> submarines;
         private GameState _currentState;
 
         [Space] [Header("Side Controllers")]
@@ -28,7 +27,7 @@ namespace Submarines
 
         private void StartPrepareForBattle()
         {
-            _currentState = new PrepareForBattleState(this,playerPrepareForBattleSideController, aiPrepareForBattleSideController, submarines);
+            _currentState = new PrepareForBattleState(this,playerPrepareForBattleSideController, aiPrepareForBattleSideController);
             _currentState.OnStateOver += PrepareForBattleStateOver;
             _currentState.Start();
             StartCoroutine(_currentState.Start());

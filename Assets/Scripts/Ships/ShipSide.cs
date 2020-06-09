@@ -2,22 +2,23 @@
 using System.Collections.Generic;
 using MStudios;
 using MStudios.Grid;
+using Ships;
 using Submarines.SideControllers;
 using UnityEngine;
 
 namespace Submarines
 {
-    public class SubsSide : GridVisual<SubmarineCellState>
+    public class SubsSide : GridVisual<ShipCellState>
     {
-        [SerializeField] private Submarine submarinePrefab;
-        private readonly List<Submarine> _submarines = new List<Submarine>();
+        [SerializeField] private Ship submarinePrefab;
+        private readonly List<Ship> _submarines = new List<Ship>();
 
         private ISubSideController _sideController;
 
         protected override void Awake()
         {
             base.Awake();
-            grid = new Grid2D<SubmarineCellState>(transform.position,rows, columns, this);
+            grid = new Grid2D<ShipCellState>(transform.position,rows, columns, this);
         }
 
         public void SetSideControllerAndActivate(ISubSideController sideController)
@@ -48,10 +49,10 @@ namespace Submarines
                 var newSubObject = Instantiate(submarinePrefab,transform);
                 newSubObject.transform.localPosition = objectOnGrid.gridReferenceFramePosition.AsVector3();
                 
-                var newSub = newSubObject.GetComponent<Submarine>();
+                var newSub = newSubObject.GetComponent<Ship>();
                 newSub.SetSprite(objectOnGrid.visual);
 
-                var deadPositions = objectOnGrid.GetAllLocalPositionsWithValue(SubmarineCellState.Dead);
+                var deadPositions = objectOnGrid.GetAllLocalPositionsWithValue(ShipCellState.Dead);
                 foreach (var deadPosition in deadPositions)
                 {
                     newSub.SetDeadCell(deadPosition);
@@ -61,14 +62,14 @@ namespace Submarines
             }
         }
 
-        public Vector3 GetRandomCellWorldPositionByState(SubmarineCellState state)
+        public Vector3 GetRandomCellWorldPositionByState(ShipCellState state)
         {
             return grid.GetRandomCellByValue(state).AsVector3() + transform.position;
         }
 
         public void DamageCell(Vector3 cellWorldPosition)
         {
-            grid.SetValue(SubmarineCellState.Dead, cellWorldPosition);
+            grid.SetValue(ShipCellState.Dead, cellWorldPosition);
         }        
     }
 }
