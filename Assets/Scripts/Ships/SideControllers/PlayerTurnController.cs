@@ -4,15 +4,15 @@ using MStudios;
 using MStudios.Grid;
 using UnityEngine;
 
-namespace Submarines.SideControllers
+namespace Ships.SideControllers
 {
     [RequireComponent(typeof(BoxCollider2D))]
-    public class PlayerTurnController : MonoBehaviour, ISubSideController
+    public class PlayerTurnController : MonoBehaviour, IShipSideController
     {
         public event Action OnTurnEnd;
-        public event Action OnGridLocationClicked;
+        public event Action<Vector2, ShipCellState> OnGridLocationClicked;
         
-        private Grid2D<SubmarineCellState> _grid;
+        private Grid2D<ShipCellState> _grid;
         [SerializeField] private GridObject2DData cellSelectorObject;
         private SpriteRenderer _cellSelectorRenderer;
         private Camera _mainCamera;
@@ -27,7 +27,7 @@ namespace Submarines.SideControllers
             _boxCollider2D = GetComponent<BoxCollider2D>();
         }
 
-        public void SetGrid(Grid2D<SubmarineCellState> grid)
+        public void SetGrid(Grid2D<ShipCellState> grid)
         {
             _grid = grid;
             transform.position = grid.gridPosition;
@@ -44,10 +44,11 @@ namespace Submarines.SideControllers
         
         public void Activate()
         {
+            gameObject.SetActive(true);
             _activeTurnLength = 0;
             var localPosition = GetMouseLocalGridPosition();
             _cellSelectorRenderer =
-                MUtils.CreateSpriteObject2D(transform, localPosition, cellSelectorObject.visual, Color.white);
+                MUtils.CreateSpriteObject2D(transform, localPosition, cellSelectorObject.visual, Color.white,10);
         }
 
         private Vector2 GetMouseLocalGridPosition()
@@ -60,6 +61,7 @@ namespace Submarines.SideControllers
         public void Deactivate()
         {
             Destroy(_cellSelectorRenderer.gameObject);
+            gameObject.SetActive(false);
             _cellSelectorRenderer = null;
         }
 
@@ -84,15 +86,13 @@ namespace Submarines.SideControllers
 
         private void OnMouseDown()
         {
+            if (_cellSelectorRenderer == null) return;
+            
             var mouseWorldPosition = MUtils.Mouse.GetWorldPosition(_mainCamera);
 
-            SubmarineCellState state = _grid.GetValueAt(mouseWorldPosition);
-
-            if (state == SubmarineCellState.Alive)
-            {
-                _grid.SetValue(SubmarineCellState.Dead, mouseWorldPosition);
-                Debug.Log("Hit");
-            }
+            ShipCellState state = _grid.GetValueAt(mouseWorldPosition);
+            var localPosition = _grid.SnapToWorldGridPosition(mouseWorldPosition);
+            OnGridLocationClicked?.Invoke(localPosition, state);
         }
     }
 }

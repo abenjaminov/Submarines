@@ -4,17 +4,17 @@ using System.Collections.Generic;
 using System.Linq;
 using MStudios;
 using MStudios.Grid;
-using Submarines.SideControllers;
+using Ships.SideControllers;
 using UnityEngine;
 
-namespace Submarines
+namespace Ships
 {
     [RequireComponent(typeof(BoxCollider2D))]
     public class PlayerPrepareForBattleSideController : MonoBehaviour,  IPrepareForBattleSubSideController
     {
         public event Action OnReadyForBattle;
         
-        private Grid2D<SubmarineCellState> _grid;
+        private Grid2D<ShipCellState> _grid;
         public List<GridObjectAmount> prepareForBattleObjects;       
         private int _selectedObjectIndex = -1;
         private SpriteRenderer _selectedObjectRenderer;
@@ -27,7 +27,7 @@ namespace Submarines
             _boxCollider2D = GetComponent<BoxCollider2D>();
         }
 
-        public void SetGrid(Grid2D<SubmarineCellState> grid)
+        public void SetGrid(Grid2D<ShipCellState> grid)
         {
             _grid = grid;
             transform.position = grid.gridPosition;
@@ -42,6 +42,7 @@ namespace Submarines
         public void Deactivate()
         {
             _grid = null;
+            gameObject.SetActive(false);
         }
 
         private void SetGridCollider()
@@ -93,8 +94,7 @@ namespace Submarines
             }
 
             _selectedObjectRenderer = MUtils.CreateSpriteObject2D(transform, Vector2.zero,
-                gridObjectData.visual, Color.white);
-            _selectedObjectRenderer.sortingOrder = 1;
+                gridObjectData.visual, Color.white, 3);
         }
 
         private void OnMouseDown()
@@ -104,7 +104,7 @@ namespace Submarines
 
             if (_grid.CanPutDownObject(selectedObject.objectData, mouseWorldPosition))
             {
-                _grid.PutDownObject(selectedObject.objectData, mouseWorldPosition, SubmarineCellState.Alive);
+                _grid.PutDownObject(selectedObject.objectData, mouseWorldPosition, ShipCellState.Alive);
                 
                 selectedObject.amount--;
 

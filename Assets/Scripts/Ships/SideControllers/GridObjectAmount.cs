@@ -1,7 +1,7 @@
 ﻿using System;
 using MStudios.Grid;
 
-namespace Submarines.SideControllers
+namespace Ships.SideControllers
 {
     [Serializable]
     public class GridObjectAmount

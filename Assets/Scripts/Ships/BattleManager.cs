@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using MStudios.Events.GameEvents;
-using MStudios.Grid;
-using Submarines.GameStates;
-using Submarines.SideControllers;
+﻿using Ships.GameStates;
+using Ships.SideControllers;
 using UnityEngine;
 
-namespace Submarines
+namespace Ships
 {
     public class BattleManager : MonoBehaviour
     {
@@ -15,14 +12,24 @@ namespace Submarines
         [SerializeField] private PlayerPrepareForBattleSideController playerPrepareForBattleSideController;
         [SerializeField] private AIPrepareForBattleSideController aiPrepareForBattleSideController;
         [SerializeField] private PlayerTurnController playerTurnController;
+        [SerializeField] private AITurnController AITurnController;
 
         [Space] [Header("Sides (Grids)")]
-        public SubsSide Player;
-        public SubsSide Enemy;
+        public ShipSide Player;
+        public ShipSide Enemy;
+
+        [HideInInspector] public IBattleManagerInterface Interface;
+        
+        private bool _isPlayerTurn;
         
         private void Awake()
         {
-              StartPrepareForBattle();
+            Interface = GetComponent<IBattleManagerInterface>();
+
+            Player.OnSideLost += PlayerSideLost;
+            Enemy.OnSideLost += EnemySideLost;
+            
+            StartPrepareForBattle();
         }
 
         private void StartPrepareForBattle()
@@ -35,7 +42,36 @@ namespace Submarines
 
         private void PrepareForBattleStateOver()
         {
-            _currentState = new EnemyTurnState(this);
+            ToggleTurns();
+        }
+
+        private void ToggleTurns()
+        {
+            _isPlayerTurn = !_isPlayerTurn;
+
+            if (_isPlayerTurn)
+            {
+                _currentState = new PlayerTurnState(this, playerTurnController);
+                StartCoroutine(_currentState.Start());
+            }
+            else
+            {
+                _currentState = new EnemyTurnState(this,AITurnController);
+                StartCoroutine(_currentState.Start());
+            }
+            
+            _currentState.OnStateOver += ToggleTurns;
+        }
+
+        private void PlayerSideLost()
+        {
+            _currentState = new GameEndState(this, false);
+            StartCoroutine(_currentState.Start());
+        }
+        
+        private void EnemySideLost()
+        {
+            _currentState = new GameEndState(this, true);
             StartCoroutine(_currentState.Start());
         }
     }

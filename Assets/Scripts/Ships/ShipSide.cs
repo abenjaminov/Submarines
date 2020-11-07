@@ -1,31 +1,83 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using MStudios;
 using MStudios.Grid;
-using Ships;
-using Submarines.SideControllers;
+using Ships.SideControllers;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-namespace Submarines
+namespace Ships
 {
-    public class SubsSide : GridVisual<ShipCellState>
+    public class ShipSide : GridVisual<ShipCellState>
     {
-        [SerializeField] private Ship submarinePrefab;
-        private readonly List<Ship> _submarines = new List<Ship>();
-
-        private ISubSideController _sideController;
+        public event Action OnSideLost;
+        
+        
+        [SerializeField] private Ship shipPrefab;
+        private readonly List<Ship> _ships = new List<Ship>();
+        [SerializeField] private List<Cannon> landCannons;
+        [SerializeField] private GameObject burningEffectPrefab;
+        [SerializeField] private List<GameObject> instantiatedBurningEffects = new List<GameObject>();
+        [SerializeField] private bool isFriendly;
+        [SerializeField] private ExpandingCircle expandingCircleEffect;
+        private IShipSideController _sideController;
+        private bool _expectImpact;
 
         protected override void Awake()
         {
             base.Awake();
             grid = new Grid2D<ShipCellState>(transform.position,rows, columns, this);
+
+            if (isFriendly)
+            {
+                foreach (var cannon in landCannons)
+                {
+                    cannon.SetAsFriendly();
+                }    
+            }
         }
 
-        public void SetSideControllerAndActivate(ISubSideController sideController)
+        public void SetSideControllerAndActivate(IShipSideController sideController)
         {
             _sideController = sideController;
             _sideController.SetGrid(grid);
             _sideController.Activate();
+        }
+
+        public void ClearSideController()
+        {
+            _sideController.Deactivate();
+            _sideController = null;
+        }
+        
+        public void FireAtTarget(Vector2 worldPosition)
+        {
+            var localGridPosition = grid.SnapToLocalGridPosition(worldPosition);
+            
+            var height = new Vector2Int(0, localGridPosition.y);
+
+            var objectsOnGridAtSameHeight = grid.GetObjectsOnGrid()
+                .Where(x => x.IsPositionOnObject(height.With(x: x.gridReferenceFramePosition.x))).ToList();
+
+            if (objectsOnGridAtSameHeight.Count > 0)
+            {
+                var randomObject = objectsOnGridAtSameHeight[Random.Range(0, objectsOnGridAtSameHeight.Count)];
+                var shipAttacker = _ships.FirstOrDefault(ship =>
+                    ship.transform.localPosition == randomObject.gridReferenceFramePosition.AsVector3());
+
+                if (shipAttacker != null)
+                {
+                    shipAttacker.FireAt(worldPosition);
+                }
+            }
+            else
+            {
+                var randomCannon = landCannons[Random.Range(0, landCannons.Count)];
+                
+                randomCannon.FireAt(worldPosition);
+            }
         }
         
         public void DeactivateController()
@@ -36,40 +88,109 @@ namespace Submarines
 
         public override void Refresh()
         {
-            foreach (var drawnObject in _submarines)
+            foreach (var drawnObject in _ships)
             {
                 Destroy(drawnObject.gameObject);
             }
-            _submarines.Clear();
+
+            _ships.Clear();
             
             var objectsOnGrid = grid.GetObjectsOnGrid();
 
             foreach (var objectOnGrid in objectsOnGrid)
             {
-                var newSubObject = Instantiate(submarinePrefab,transform);
-                newSubObject.transform.localPosition = objectOnGrid.gridReferenceFramePosition.AsVector3();
+                var newShip = GetNewShip(objectOnGrid);
+
+                ConfigureShip(objectOnGrid, newShip);
+
+                _ships.Add(newShip);
+            }
+        }
+
+        private void ConfigureShip(GridObject2D<ShipCellState> objectOnGrid, Ship newShip)
+        {
+            var deadPositions = objectOnGrid.GetAllLocalPositionsWithValue(ShipCellState.Dead);
+            foreach (var deadPosition in deadPositions)
+            {
+                newShip.SetDeadCell(deadPosition);
+            }
+        }
+
+        private Ship GetNewShip(GridObject2D<ShipCellState> objectOnGrid)
+        {
+            var newSubObject = Instantiate(shipPrefab, transform);
+            newSubObject.transform.localPosition = objectOnGrid.gridReferenceFramePosition.AsVector3();
+
+            var newShip = newSubObject.GetComponent<Ship>();
+            newShip.SetSprite(objectOnGrid.visual);
+            
+            if (isFriendly)
+            {
+                newShip.SetAsFriendly();
+            }
+            
+            return newShip;
+        }
+
+        private void OnShipHit(Vector3 worldPosition, CannonBall hitBall)
+        {
+            if (grid.GetValueAt(worldPosition) == ShipCellState.Alive)
+            {
+                grid.SetValue(ShipCellState.Dead, worldPosition);
+                var snappedWorldPosition = grid.SnapToWorldGridPosition(worldPosition);
+                var burningEffect = Instantiate(burningEffectPrefab, transform);
+                burningEffect.transform.position = snappedWorldPosition;
+                Destroy(hitBall.gameObject);
                 
-                var newSub = newSubObject.GetComponent<Ship>();
-                newSub.SetSprite(objectOnGrid.visual);
+                var gridHasLiveCell = grid.HasCellWithValue(ShipCellState.Alive);
 
-                var deadPositions = objectOnGrid.GetAllLocalPositionsWithValue(ShipCellState.Dead);
-                foreach (var deadPosition in deadPositions)
+                if (!gridHasLiveCell)
                 {
-                    newSub.SetDeadCell(deadPosition);
+                    OnSideLost?.Invoke();
                 }
-
-                _submarines.Add(newSub);
             }
         }
 
         public Vector3 GetRandomCellWorldPositionByState(ShipCellState state)
         {
-            return grid.GetRandomCellByValue(state).AsVector3() + transform.position;
+            return grid.GetRandomLocalCellPositionByValue(state).AsVector3() + transform.position;
         }
 
-        public void DamageCell(Vector3 cellWorldPosition)
+        public bool HasLiveCells()
         {
-            grid.SetValue(ShipCellState.Dead, cellWorldPosition);
-        }        
+            var gridHasLiveCell = grid.HasCellWithValue(ShipCellState.Alive);
+
+            return gridHasLiveCell;
+        }
+
+        public void OnCannonBallHitTarget(CannonBallTargetHitInfo cannonBallTargetHitInfo)
+        {
+            if (this.isFriendly == cannonBallTargetHitInfo.cannonBall.IsFriendly())
+                return;
+            
+            var valueAtHitTarget = this.grid.GetValueAt(cannonBallTargetHitInfo.target);
+
+            if (valueAtHitTarget == ShipCellState.Alive)
+            {
+                if (cannonBallTargetHitInfo.cannonBall.GetTimeAlive() > 0.1f)
+                {
+                    this.OnShipHit(cannonBallTargetHitInfo.target, cannonBallTargetHitInfo.cannonBall);
+                }
+            }
+            else if (valueAtHitTarget == ShipCellState.Empty)
+            {
+                StartCoroutine(InstantiateExpandingCircle(0, cannonBallTargetHitInfo.target));
+                StartCoroutine(InstantiateExpandingCircle(0.2f, cannonBallTargetHitInfo.target));
+                StartCoroutine(InstantiateExpandingCircle(0.4f, cannonBallTargetHitInfo.target));
+            }
+            
+            Destroy(cannonBallTargetHitInfo.cannonBall.gameObject);
+        }
+
+        public IEnumerator InstantiateExpandingCircle(float delay, Vector3 position)
+        {
+            yield return new WaitForSeconds(delay);
+            Instantiate(expandingCircleEffect, position, Quaternion.identity);
+        }
     }
 }

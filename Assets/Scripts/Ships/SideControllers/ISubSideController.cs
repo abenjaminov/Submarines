@@ -1,11 +1,11 @@
 ﻿using System.Data.SqlTypes;
 using MStudios.Grid;
 
-namespace Submarines.SideControllers
+namespace Ships.SideControllers
 {
-    public interface ISubSideController
+    public interface IShipSideController
     {
-        void SetGrid(Grid2D<SubmarineCellState> grid);
+        void SetGrid(Grid2D<ShipCellState> grid);
         void Activate();
         void Deactivate();
     }

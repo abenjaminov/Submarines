@@ -15,12 +15,12 @@ namespace MStudios.Grid
         public Sprite visual => _data.visual;
         private readonly T _initialValue;
 
-        public GridObject2D(string name, GridObject2DData data, T initialValue = default(T)) : this(name, data.occupiedOffsets, data.centerOffset, initialValue)
+        public GridObject2D(string name, GridObject2DData data, T initialValue = default(T)) : this(name, data.occupiedOffsets, initialValue)
         {
             this._data = data;
         }
 
-        private GridObject2D(string name, List<Vector2Int> occupiedOffsets, Vector2 cellDrawOffset, T initialValue = default(T))
+        private GridObject2D(string name, List<Vector2Int> occupiedOffsets, T initialValue = default(T))
         {
             this._data = null;
             _initialValue = initialValue;
@@ -91,6 +91,11 @@ namespace MStudios.Grid
         public bool HasCellWithValue(T value)
         {
             return _gridObjectCells.Any(x => x.value.Equals(value));
+        }
+        
+        public bool HasCellWithValues(IEnumerable<T> values)
+        {
+            return _gridObjectCells.Any(x => values.Contains(x.value));
         }
 
         public Vector2Int GetRandomLocalCellPositionWithValue(T value)

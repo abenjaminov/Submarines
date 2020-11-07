@@ -1,10 +1,7 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using MStudios.Grid;
-using Submarines.SideControllers;
-using UnityEngine;
+using Ships.SideControllers;
 
-namespace Submarines.GameStates
+namespace Ships.GameStates
 {
     public class PrepareForBattleState : GameState
     {
@@ -37,6 +34,7 @@ namespace Submarines.GameStates
         {
             _playerReady = true;
             battleManager.Player.DeactivateController();
+            battleManager.Interface.ShowMessage("Player ready for battle");
             TryEndState();
         }
 
@@ -44,6 +42,7 @@ namespace Submarines.GameStates
         {
             _enemyReady = true;
             battleManager.Enemy.DeactivateController();
+            battleManager.Interface.ShowMessage("Enemy ready for battle");
             TryEndState();
         }
 

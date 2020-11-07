@@ -1,6 +1,6 @@
-﻿namespace Submarines
+﻿namespace Ships
 {
-    public enum SubmarineCellState
+    public enum ShipCellState
     {
         Empty,
         Alive,

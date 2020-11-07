@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Submarines.SideControllers
+namespace Ships.SideControllers
 {
-    public interface IPrepareForBattleSubSideController : ISubSideController
+    public interface IPrepareForBattleSubSideController : IShipSideController
     {
         event Action OnReadyForBattle;
     }

@@ -1,7 +1,12 @@
-﻿namespace Ships
+﻿using UnityEngine;
+
+namespace Ships
 {
-    public class DebugBattleInterface
+    public class DebugBattleInterface : MonoBehaviour, IBattleManagerInterface
     {
-        
+        public void ShowMessage(string message)
+        {
+            Debug.Log("Battle Interface - " + message);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -76,6 +77,45 @@ namespace MStudios
             renderer.color = color;
 
             return renderer;
+        }
+
+        public static class Editor
+        {
+            internal static List<TypeReference> types = new List<TypeReference>();
+
+            static Editor()
+            {
+                types.Add(new TypeReference()
+                    {
+                        type = typeof(float),
+                        displayName = "Float"
+                    });
+                types.Add(new TypeReference()
+                {
+                    type = typeof(Vector3),
+                    displayName = "Vector3"
+                });
+                types.Add(new TypeReference()
+                {
+                    type = typeof(string),
+                    displayName = "String"
+                });
+            }
+            
+            public static void AddType(string name, Type type)
+            {
+                types.Add(new TypeReference()
+                {
+                    displayName = name,
+                    type = type
+                });
+            }
+        }
+        
+        internal class TypeReference
+        {
+            public Type type;
+            public string displayName;
         }
     }
 }

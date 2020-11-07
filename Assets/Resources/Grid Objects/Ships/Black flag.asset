@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3940ef7de2843faaf59442e04e7d416, type: 3}
+  m_Name: Black flag
+  m_EditorClassIdentifier: 
+  height: 0
+  width: 0
+  centerOffset: {x: 0, y: 0}
+  leftPartWidth: 0
+  rightPartWidth: 0
+  bottomPartHeight: 0
+  topPartHeight: 0
+  visual: {fileID: 21300000, guid: 8b93e2ec970fce545a57596d07b5767b, type: 3}
+  occupiedOffsets:
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}

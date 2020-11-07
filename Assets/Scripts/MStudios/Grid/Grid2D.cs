@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ships;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -10,6 +11,8 @@ namespace MStudios.Grid
     {
         private readonly List<GridObject2D<T>> _gridObjectInstances = new List<GridObject2D<T>>();
         private readonly List<Vector2Int> _occupiedCells = new List<Vector2Int>();
+        private readonly T[,] _grid;
+        private readonly T _defaultValue;
 
         public readonly int rows;
         public readonly int columns;
@@ -17,35 +20,52 @@ namespace MStudios.Grid
         public readonly Vector2 gridPosition;
         private IGridVisual<T> _visualization;
         
-        public Grid2D(Vector2 position, int rows, int columns, IGridVisual<T> visualization)
+        public Grid2D(Vector2 position, int rows, int columns, IGridVisual<T> visualization, T defaultValue = default(T))
         {
             _visualization = visualization;
             gridPosition = position;
             this.rows = rows;
             this.columns = columns;
+            this._defaultValue = defaultValue;
+            
+            _grid = new T[rows, columns];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < columns; j++)
+                {
+                    _grid[i, j] = defaultValue;
+                }
+            }
         }
 
-        public Vector2Int GetRandomCellByValue(T value)
+        public bool HasCellWithValue(T value)
         {
             if (value.Equals(default(T)))
             {
-                // TODO : default value selector
-                return Vector2Int.zero;
+                // TODO : Return for default values
+                return true;
             }
             else
             {
-                var availableObjects = _gridObjectInstances.Where(x => x.HasCellWithValue(value)).ToList();
-                var randomIndex = Random.Range(0, availableObjects.Count);
-                var selectedObject = availableObjects[randomIndex];
-                var cellPosition = selectedObject.GetRandomLocalCellPositionWithValue(value);
-
-                return cellPosition + selectedObject.gridReferenceFramePosition;
+                return _gridObjectInstances.Any(x => x.HasCellWithValue(value));
             }
+        }
+        
+        public Vector2Int GetRandomLocalCellPositionByValue(T value)
+        {
+            var matchingCells = _grid.Where(x => x.Equals(value)).ToList();
+            
+            var randomIndex = Random.Range(0, matchingCells.Count);
+            var selectedObject = matchingCells[randomIndex];
+
+            return selectedObject;
         }
         
         public bool IsCellEmpty(Vector2 worldPosition)
         {
-            return !_occupiedCells.Contains(ClampToLocalGridPosition(worldPosition));
+            var posInGridReferenceFrame = ClampToLocalGridPosition(worldPosition);
+            return _grid[posInGridReferenceFrame.y, posInGridReferenceFrame.x].Equals(_defaultValue);
         }
 
         public T GetValueAt(Vector2 worldPosition)
@@ -88,8 +108,11 @@ namespace MStudios.Grid
             var newGridObject = new GridObject2D<T>("Grid Object", objectData,value);
             newGridObject.SetLocalPosition(new Vector2Int(positionOnGrid.x, positionOnGrid.y));
 
-            _occupiedCells.AddRange(newGridObject.gridReferenceFrameCellPositions);
-            
+            foreach (var position in newGridObject.gridReferenceFrameCellPositions)
+            {
+                _grid[position.y, position.x] = newGridObject.GetValueAt(position);
+            }
+
             _gridObjectInstances.Add(newGridObject);
             
             _visualization.Refresh();
@@ -102,7 +125,11 @@ namespace MStudios.Grid
 
             if (gridObject == null) return;
 
-            _occupiedCells.RemoveAll(x => gridObject.gridReferenceFrameCellPositions.Contains(x));
+            foreach (var position in gridObject.gridReferenceFrameCellPositions)
+            {
+                _grid[position.y, position.x] = this._defaultValue;
+            }
+            
             _gridObjectInstances.Remove(gridObject);
             _visualization.Refresh();
         }
@@ -114,7 +141,14 @@ namespace MStudios.Grid
             int topOffset = (int) -objectData.topPartHeight;
             int bottomOffset = (int) objectData.bottomPartHeight;
             
-            return ClampToLocalGridPosition(centerWorldPosition, leftOffset, rightOffset, bottomOffset, topOffset);
+            return SnapToLocalGridPosition(centerWorldPosition, leftOffset, rightOffset, bottomOffset, topOffset);
+        }
+        
+        public Vector2Int SnapToLocalGridPosition(Vector2 centerWorldPosition, int leftOffset = 0, int rightOffset = 0, int bottomOffset = 0, int topOffset = 0)
+        {
+            Vector2Int localGridPosition = ClampToLocalGridPosition(centerWorldPosition, leftOffset, rightOffset, bottomOffset, topOffset);
+
+            return localGridPosition;
         }
         
         public Vector2 SnapToWorldGridPosition(Vector2 centerWorldPosition, GridObject2DData objectData)
@@ -127,7 +161,7 @@ namespace MStudios.Grid
             return SnapToWorldGridPosition(centerWorldPosition, leftOffset, rightOffset, bottomOffset, topOffset);
         }
 
-        private Vector2 SnapToWorldGridPosition(Vector2 centerWorldPosition, int leftOffset = 0, int rightOffset = 0, int bottomOffset = 0, int topOffset = 0)
+        public Vector2 SnapToWorldGridPosition(Vector2 centerWorldPosition, int leftOffset = 0, int rightOffset = 0, int bottomOffset = 0, int topOffset = 0)
         {
             Vector2 localGridPosition = ClampToLocalGridPosition(centerWorldPosition, leftOffset, rightOffset, bottomOffset, topOffset);
 
@@ -153,8 +187,12 @@ namespace MStudios.Grid
             GridObject2D<T> objectToSetValue = GetObjectAt(worldPosition);
 
             if (objectToSetValue == null) return;
+
+            var localPosition = ClampToLocalGridPosition(worldPosition);
+
+            _grid[localPosition.y, localPosition.x] = value;
             
-            objectToSetValue.SetValueAt(ClampToLocalGridPosition(worldPosition), value);
+            objectToSetValue.SetValueAt(localPosition, value);
             _visualization.Refresh();
         }
 

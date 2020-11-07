@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Ships;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,19 +16,23 @@ namespace MStudios.Inspector
         private string[] allComponentNames;
         private int size = 0;
         
-        private TypeReference[] types = {new TypeReference()
-        {
-            type = typeof(float),
-            displayName = "Float"
-        }, new TypeReference()
-        {
-            type = typeof(Vector3),
-            displayName = "Vector3"
-        },
-        new TypeReference() {
-            type = typeof(string),
-            displayName = "String"
-        }};
+        // private TypeReference[] types = {new TypeReference()
+        // {
+        //     type = typeof(float),
+        //     displayName = "Float"
+        // }, new TypeReference()
+        // {
+        //     type = typeof(Vector3),
+        //     displayName = "Vector3"
+        // },
+        // new TypeReference() {
+        //     type = typeof(string),
+        //     displayName = "String"
+        // },
+        // new TypeReference() {
+        //     type = typeof(CannonBallTargetHitInfo),
+        //     displayName = "Cannon Ball Target HitInfo"
+        // }};
         
         private int selectedType = 0;
         
@@ -71,10 +76,10 @@ namespace MStudios.Inspector
             {
                 var typeRect = new Rect(position.x, position.y+ height,position.width, 20);
                 height += heightIncrement;
-                selectTypeProperty.intValue = EditorGUI.Popup(typeRect, "Attribute Type", selectTypeProperty.intValue, types.Select(x => x.displayName).ToArray());    
+                selectTypeProperty.intValue = EditorGUI.Popup(typeRect, "Attribute Type", selectTypeProperty.intValue, MUtils.Editor.types.Select(x => x.displayName).ToArray());    
             }
             
-            var type = types[selectTypeProperty.intValue].type;
+            var type = MUtils.Editor.types[selectTypeProperty.intValue].type;
             typeProperty.stringValue = type.ToString();
             
             if (ownerProperty.objectReferenceValue)
@@ -128,12 +133,6 @@ namespace MStudios.Inspector
             }
             
             return methodsQuery;
-        }
-
-        private class TypeReference
-        {
-            public Type type;
-            public string displayName;
         }
     }
     #endif

@@ -9,8 +9,7 @@ namespace MStudios.Grid
     {
         [HideInInspector] public int height;
         [HideInInspector] public int width;
-        [HideInInspector] public Vector2 centerOffset;
-        
+
         [HideInInspector] public float leftPartWidth;
         [HideInInspector] public float rightPartWidth;
         [HideInInspector] public float bottomPartHeight;
@@ -29,11 +28,6 @@ namespace MStudios.Grid
             
             bottomPartHeight = Mathf.Abs(visual.bounds.min.y);
             topPartHeight = Mathf.Abs(visual.bounds.max.y);
-            
-            centerOffset = new Vector2(
-                visual.pivot.x / visual.rect.width - 0.5f,
-                visual.pivot.y / visual.rect.height - 0.5f
-                );
         }
     }
 }

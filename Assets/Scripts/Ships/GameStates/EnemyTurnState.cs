@@ -1,26 +1,32 @@
 ﻿using System.Collections;
-using Submarines.SideControllers;
+using Ships.SideControllers;
 using UnityEngine;
-using UnityEngine.iOS;
 
-namespace Submarines.GameStates
+namespace Ships.GameStates
 {
     public class EnemyTurnState : GameState
     {
-        public EnemyTurnState(BattleManager battleManager) : base(battleManager)
+        private AITurnController _controller;
+        
+        public EnemyTurnState(BattleManager battleManager, AITurnController controller) : base(battleManager)
         {
-            
+            _controller = controller;
         }
 
         public override IEnumerator Start()
         {
-            yield return new WaitForSeconds(1);
+            _controller.OnTurnEnd += ControllerOnOnTurnEnd;
+            battleManager.Player.SetSideControllerAndActivate(_controller);
+
+            yield break;
+        }
+
+        private void ControllerOnOnTurnEnd()
+        {
+            _controller.OnTurnEnd -= ControllerOnOnTurnEnd;
+            battleManager.Player.DeactivateController();
             
-            var aliveCellWorldPosition = battleManager.Player.GetRandomCellWorldPositionByState(SubmarineCellState.Alive);
-            
-            yield return new WaitForSeconds(1);
-            
-            battleManager.Player.DamageCell(aliveCellWorldPosition);
+            this.EndState("Enemy turn end");
         }
     }
 }

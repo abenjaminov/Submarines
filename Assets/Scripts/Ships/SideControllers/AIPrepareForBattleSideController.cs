@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using MStudios.Grid;
 using UnityEngine;
 
-namespace Submarines.SideControllers
+namespace Ships.SideControllers
 {
     public class AIPrepareForBattleSideController : MonoBehaviour, IPrepareForBattleSubSideController
     {
-        private Grid2D<SubmarineCellState> _grid;
+        private Grid2D<ShipCellState> _grid;
         public List<GridObject2DData> prepareForBattleObjects;
         public event Action OnReadyForBattle;
-        public void SetGrid(Grid2D<SubmarineCellState> grid)
+        public void SetGrid(Grid2D<ShipCellState> grid)
         {
             _grid = grid;
         }
@@ -18,7 +18,6 @@ namespace Submarines.SideControllers
         public void Activate()
         {
             gameObject.SetActive(true);
-            _grid.PutDownObject(prepareForBattleObjects[0], transform.position, SubmarineCellState.Alive);
             OnReadyForBattle?.Invoke();
         }
         

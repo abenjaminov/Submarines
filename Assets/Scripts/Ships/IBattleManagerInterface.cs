@@ -1,7 +1,7 @@
 ﻿namespace Ships
 {
-    public class IBattleManagerInterface
+    public interface IBattleManagerInterface
     {
-        
+        void ShowMessage(string message);
     }
 }
